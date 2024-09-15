@@ -73,6 +73,7 @@ class BioStruct3DColorSchemeFactory {
 public:
     virtual BioStruct3DColorScheme* createInstance(const BioStruct3DObject* biostruct) const = 0;
     //! Method creates factories
+    virtual bool isSchemeValid(const BioStruct3D&) const;
 };
 
 #define COLOR_SCHEME_FACTORY(c) \
@@ -107,6 +108,7 @@ public:
 
 protected:
     virtual Color4f getSchemeAtomColor(const SharedAtom& atom) const;
+    virtual Color4f getSelectionColor(const SharedAtom&) const;
 
 protected:
     Color4f defaultAtomColor;
@@ -168,5 +170,26 @@ private:
 public:
     COLOR_SCHEME_FACTORY(SimpleColorScheme)
 };  // class SimpleColorScheme
+
+/* Color scheme displaying Shannon entropy in blue-red gradient (red - high entropy, blue - low entropy) */
+class AlignmentEntropyColorScheme : public BioStruct3DColorScheme {
+    AlignmentEntropyColorScheme(const BioStruct3DObject* biostruct);
+    Color4f getSchemeAtomColor(const SharedAtom& atom) const override;
+    Color4f getSelectionColor(const SharedAtom& atom) const override;
+
+private:
+    QVector<int> entropyChainIds;
+
+    Color4f getSelectionOrSchemeColor(const SharedAtom& atom, int green, bool isSelection) const;
+    static QVector<int> getEntropyChainIds(const BioStruct3D& biostruct);
+
+public:
+    static const QString schemeName;
+    class Factory : public BioStruct3DColorSchemeFactory {
+    public:
+        BioStruct3DColorScheme* createInstance(const BioStruct3DObject* biostructObj) const override;
+        bool isSchemeValid(const BioStruct3D& biostruct3d) const override;
+    };
+};  // class AlignmentEntropyColorScheme
 
 }  // namespace U2

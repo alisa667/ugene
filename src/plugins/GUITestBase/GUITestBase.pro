@@ -112,6 +112,7 @@ HEADERS +=  src/GUITestBasePlugin.h \
             src/runnables/ugene/plugins/dna_export/ExportSelectedSequenceFromAlignmentDialogFiller.h \
             src/runnables/ugene/plugins/dna_export/ExportSequences2MSADialogFiller.h \
             src/runnables/ugene/plugins/dna_export/ExportSequencesDialogFiller.h \
+            src/runnables/ugene/plugins/dna_export/GetSequenceByIdFiller.h \
             src/runnables/ugene/plugins/dna_export/ImportAnnotationsToCsvFiller.h \
 #   Runnables / UGENE / plugins / enzymes
             src/runnables/ugene/plugins/enzymes/ConstructMoleculeDialogFiller.h \
@@ -223,6 +224,7 @@ HEADERS +=  src/GUITestBasePlugin.h \
             src/tests/common_scenarios/create_shortcut/GTTestsCreateShortcut.h \
             src/tests/common_scenarios/document_from_text/GTTestsDocumentFromText.h \
             src/tests/common_scenarios/dp_view/GTTestsDpView.h \
+            src/tests/common_scenarios/entropy/GTTestsEntropyCalculation.h \
             src/tests/common_scenarios/fasttree/GTTestsFastTree.h \
             src/tests/common_scenarios/genecut/GTTestsGeneCut.h \
             src/tests/common_scenarios/iqtree/GTTestsIQTree.h \
@@ -399,6 +401,7 @@ SOURCES +=  src/GUITestBasePlugin.cpp \
             src/runnables/ugene/plugins/dna_export/ExportSelectedSequenceFromAlignmentDialogFiller.cpp \
             src/runnables/ugene/plugins/dna_export/ExportSequences2MSADialogFiller.cpp \
             src/runnables/ugene/plugins/dna_export/ExportSequencesDialogFiller.cpp \
+            src/runnables/ugene/plugins/dna_export/GetSequenceByIdFiller.cpp \
             src/runnables/ugene/plugins/dna_export/ImportAnnotationsToCsvFiller.cpp \
 #   Runnables / UGENE / plugins / enzymes
             src/runnables/ugene/plugins/enzymes/ConstructMoleculeDialogFiller.cpp \
@@ -510,6 +513,7 @@ SOURCES +=  src/GUITestBasePlugin.cpp \
             src/tests/common_scenarios/create_shortcut/GTTestsCreateShortcut.cpp \
             src/tests/common_scenarios/document_from_text/GTTestsDocumentFromText.cpp \
             src/tests/common_scenarios/dp_view/GTTestsDpView.cpp \
+			src/tests/common_scenarios/entropy/GTTestsEntropyCalculation.cpp \
             src/tests/common_scenarios/fasttree/GTTestsFastTree.cpp \
             src/tests/common_scenarios/genecut/GTTestsGeneCut.cpp \
             src/tests/common_scenarios/iqtree/GTTestsIQTree.cpp \

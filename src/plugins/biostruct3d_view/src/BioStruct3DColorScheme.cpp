@@ -67,18 +67,24 @@ BioStruct3DColorSchemeRegistry* BioStruct3DColorSchemeRegistry::getInstance() {
     return reg;
 }
 
+bool BioStruct3DColorSchemeFactory::isSchemeValid(const BioStruct3D&) const {
+    return true;
+}
+
 #define REGISTER_FACTORY(c) factories.insert(c::schemeName, new c::Factory)
 void BioStruct3DColorSchemeRegistry::registerFactories() {
     REGISTER_FACTORY(ChainsColorScheme);
     REGISTER_FACTORY(SecStructColorScheme);
     REGISTER_FACTORY(ChemicalElemColorScheme);
     REGISTER_FACTORY(SimpleColorScheme);
+    REGISTER_FACTORY(AlignmentEntropyColorScheme);
 }
 
 const QString ChainsColorScheme::schemeName(QObject::tr("Molecular Chains"));
 const QString ChemicalElemColorScheme::schemeName(QObject::tr("Chemical Elements"));
 const QString SecStructColorScheme::schemeName(QObject::tr("Secondary Structure"));
 const QString SimpleColorScheme::schemeName(QObject::tr("Simple colors"));
+const QString AlignmentEntropyColorScheme::schemeName(QObject::tr("Alignment Entropy"));
 
 /*class BioStruct3DColorScheme */
 
@@ -92,7 +98,7 @@ Color4f BioStruct3DColorScheme::getAtomColor(const SharedAtom& atom) const {
     Color4f c;
 
     if (isInSelection(atom)) {
-        c = selectionColor;
+        c = getSelectionColor(atom);
     } else {
         c = getSchemeAtomColor(atom);
         if (!selection.isEmpty() && unselectedShading > 0.0) {  // dim unselected
@@ -122,6 +128,10 @@ bool BioStruct3DColorScheme::isInSelection(const SharedAtom& atom) const {
 
 Color4f BioStruct3DColorScheme::getSchemeAtomColor(const SharedAtom&) const {
     return defaultAtomColor;
+}
+
+Color4f BioStruct3DColorScheme::getSelectionColor(const SharedAtom&) const {
+    return selectionColor;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////
@@ -294,6 +304,61 @@ SimpleColorScheme::SimpleColorScheme(const BioStruct3DObject* biostruct)
     createColors();
     static int idx = 0;
     defaultAtomColor = colors[(idx++) % colors.size()];
+}
+
+/* class AlignmentEntropyColorScheme : public BioStruct3DColorScheme */
+
+AlignmentEntropyColorScheme::AlignmentEntropyColorScheme(const BioStruct3DObject* biostruct)
+    : BioStruct3DColorScheme(biostruct) {
+    BioStruct3D biostruct3D = biostruct->getBioStruct3D();
+    entropyChainIds = getEntropyChainIds(biostruct3D);
+}
+
+Color4f AlignmentEntropyColorScheme::getSchemeAtomColor(const SharedAtom& atom) const {
+    return getSelectionOrSchemeColor(atom, 0, false);
+}
+
+Color4f AlignmentEntropyColorScheme::getSelectionColor(const SharedAtom& atom) const {
+    return getSelectionOrSchemeColor(atom, 100, true);
+}
+
+Color4f AlignmentEntropyColorScheme::getSelectionOrSchemeColor(const SharedAtom& atom, int green, bool isSelection) const {
+    if (entropyChainIds.contains(atom->chainIndex)) {
+        SAFE_POINT(atom->temperature <= 1 && atom->temperature >= 0, "Atom temperature is less than 0 or greater than 1", Color4f());
+        return Color4f(QColor(atom->temperature * 255, green, (1 - atom->temperature) * 255));
+    } else if (isSelection) {
+        return selectionColor;
+    } else {
+        return Color4f((QColor(0x00, 0xff, 0x00)));
+    }
+}
+
+QVector<int> AlignmentEntropyColorScheme::getEntropyChainIds(const BioStruct3D& biostruct3D) {
+    QVector<int> ids;
+    bool isEntropy = true;
+    for (const SharedMolecule& sm : qAsConst(biostruct3D.moleculeMap)) {
+        for (const Molecule3DModel& model : qAsConst(sm->models)) {
+            for (const SharedAtom& atom : qAsConst(model.atoms)) {
+                if (atom->temperature > 1 || atom->temperature < 0) {
+                    isEntropy = false;
+                    break;
+                }
+            }
+        }
+        if (isEntropy) {
+            ids.append(biostruct3D.getIndexByChainId(sm->chainId));
+        }
+        isEntropy = true;
+    }
+    return ids;
+}
+
+BioStruct3DColorScheme* AlignmentEntropyColorScheme::Factory::createInstance(const BioStruct3DObject* biostructObj) const {
+    return new AlignmentEntropyColorScheme(biostructObj);
+}
+
+bool AlignmentEntropyColorScheme::Factory::isSchemeValid(const BioStruct3D& biostruct3d) const {
+    return !AlignmentEntropyColorScheme::getEntropyChainIds(biostruct3d).isEmpty();
 }
 
 }  // namespace U2

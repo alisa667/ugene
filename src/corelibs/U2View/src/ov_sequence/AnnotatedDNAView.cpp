@@ -34,6 +34,7 @@
 #include <U2Core/AnnotationTableObject.h>
 #include <U2Core/AppContext.h>
 #include <U2Core/AutoAnnotationsSupport.h>
+#include <U2Core/BioStruct3DObject.h>
 #include <U2Core/ClipboardController.h>
 #include <U2Core/DNASequenceObject.h>
 #include <U2Core/DNASequenceSelection.h>
@@ -263,6 +264,7 @@ QWidget* AnnotatedDNAView::createViewWidget(QWidget* parent) {
 
     ADVSequenceObjectContext* ctx;
     QList<DNAAlphabetType> alphabets;
+    QList<DocumentFormatId> formatIds;
 
     for (int i = 0; i < seqViews.size(); i++) {
         if (seqViews[i] != nullptr) {
@@ -272,10 +274,11 @@ QWidget* AnnotatedDNAView::createViewWidget(QWidget* parent) {
                 if (alphabet) {
                     alphabets.append(alphabet->getType());
                 }
+                formatIds.append(ctx->getSequenceObject()->getDocument()->getDocumentFormat()->getFormatId());
             }
         }
     }
-    filters.append(new OPFactoryFilterVisitor(ObjViewType_SequenceView, alphabets));
+    filters.append(new OPFactoryFilterVisitor(ObjViewType_SequenceView, alphabets, formatIds));
 
     QList<OPWidgetFactory*> opWidgetFactoriesForSeqView = opWidgetFactoryRegistry->getRegisteredFactories(filters);
     foreach (OPWidgetFactory* factory, opWidgetFactoriesForSeqView) {

@@ -56,6 +56,38 @@ const QString RemoteDBRegistry::PDB("PDB");
 const QString RemoteDBRegistry::SWISS_PROT("SWISS-PROT");
 const QString RemoteDBRegistry::UNIPROTKB_SWISS_PROT("UniProtKB/Swiss-Prot");
 const QString RemoteDBRegistry::UNIPROTKB_TREMBL("UniProtKB/TrEMBL");
+const QString RemoteDBRegistry::ALPHAFOLD("AlphaFold Protein Structure Database");
+
+static const QString ENSEMBL_EXTERNAL = "https://www.ensembl.org";
+static const QString GENBANK_DNA_EXTERNAL = "https://www.ncbi.nlm.nih.gov/nucleotide";
+static const QString GENBANK_PROTEIN_EXTERNAL = "https://www.ncbi.nlm.nih.gov/protein";
+static const QString PDB_EXTERNAL = "https://www.rcsb.org";
+static const QString UNIPROTKB_EXTERNAL = "https://www.uniprot.org";
+static const QString ALPHAFOLD_EXTERNAL = "https://alphafold.ebi.ac.uk";
+
+static const QString ENSEMBL_PAGE_ID = ENSEMBL_EXTERNAL + "/id/%1";
+static const QString GENBANK_DNA_PAGE_ID = GENBANK_DNA_EXTERNAL + "/%1?report=genbank";
+static const QString GENBANK_PROTEIN_PAGE_ID = GENBANK_PROTEIN_EXTERNAL + "/%1?report=genbank";
+static const QString PDB_PAGE_ID = PDB_EXTERNAL + "/structure/%1";
+static const QString UNIPROTKB_PAGE_ID = UNIPROTKB_EXTERNAL + "/uniprotkb/%1/entry";
+static const QString ALPHAFOLD_PAGE_ID = ALPHAFOLD_EXTERNAL + "/entry/%1";
+
+const QMap<QString, QString> RemoteDBRegistry::EXTERNAL_LINKS = { {ENSEMBL, ENSEMBL_EXTERNAL},
+                                                                  {GENBANK_DNA, GENBANK_DNA_EXTERNAL},
+                                                                  {GENBANK_PROTEIN, GENBANK_PROTEIN_EXTERNAL},
+                                                                  {PDB, PDB_EXTERNAL},
+                                                                  {SWISS_PROT, UNIPROTKB_EXTERNAL},
+                                                                  {UNIPROTKB_SWISS_PROT, UNIPROTKB_EXTERNAL},
+                                                                  {UNIPROTKB_TREMBL, UNIPROTKB_EXTERNAL},
+                                                                  {ALPHAFOLD, ALPHAFOLD_EXTERNAL} };
+const QMap<QString, QString> RemoteDBRegistry::PAGE_LINKS = { {ENSEMBL, ENSEMBL_PAGE_ID},
+                                                              {GENBANK_DNA, GENBANK_DNA_PAGE_ID},
+                                                              {GENBANK_PROTEIN, GENBANK_PROTEIN_PAGE_ID},
+                                                              {PDB, PDB_PAGE_ID},
+                                                              {SWISS_PROT, UNIPROTKB_PAGE_ID},
+                                                              {UNIPROTKB_SWISS_PROT, UNIPROTKB_PAGE_ID},
+                                                              {UNIPROTKB_TREMBL, UNIPROTKB_PAGE_ID},
+                                                              {ALPHAFOLD, ALPHAFOLD_PAGE_ID} };
 
 ////////////////////////////////////////////////////////////////////////////
 // BaseLoadRemoteDocumentTask
@@ -171,16 +203,16 @@ void BaseLoadRemoteDocumentTask::createLoadedDocument() {
 
 //////////////////////////////////////////////////////////////////////////
 // LoadRemoteDocumentTask
+
 LoadRemoteDocumentTask::LoadRemoteDocumentTask(const GUrl& url)
     : BaseLoadRemoteDocumentTask(),
-      loadDataFromEntrezTask(nullptr) {
+    loadDataFromEntrezTask(nullptr) {
     fileUrl = url;
     GCOUNTER(cvar, "LoadRemoteDocumentTask");
 }
 
 LoadRemoteDocumentTask::LoadRemoteDocumentTask(const QString& accId, const QString& dbName, const QString& fullPathDir, const QString& fileFormat, const QVariantMap& hints)
     : BaseLoadRemoteDocumentTask(fullPathDir, hints),
-      loadDataFromEntrezTask(nullptr),
       accNumber(accId),
       dbName(dbName) {
     GCOUNTER(cvar, "LoadRemoteDocumentTask");
@@ -207,6 +239,29 @@ void LoadRemoteDocumentTask::prepare() {
             }
         }
     }
+}
+
+QString LoadRemoteDocumentTask::generateReport() const {
+    CHECK(!hasError(), tr("Failed to download %1 from %2. Error: %3").arg(accNumber).arg(dbName).arg(getError()));
+    CHECK(!isCanceled(), {});
+
+    QString db = dbName;
+    QString acc = accNumber;
+    if (!fileUrl.isEmpty()) {
+        auto res = AppContext::getDBXRefRegistry()->getDbAndAccessionBytUrl(fileUrl.getURLString());
+        db = res.first;
+        acc = res.second;
+    }
+
+    QString res = tr("Document was successfully downloaded: [%1, %2] -> <a href='%3'>%3</a>").arg(db).arg(acc).arg(fullPath);
+    QString pageLink = RemoteDBRegistry::PAGE_LINKS.value(db);
+    SAFE_POINT(!pageLink.isEmpty(), QString("No database found: %1").arg(db), res);
+
+    pageLink = pageLink.arg(acc);
+    res += "<br>";
+    res += tr("External database link: <a href='%1'>%1</a>").arg(pageLink);
+
+    return res;
 }
 
 QString LoadRemoteDocumentTask::getFileFormat(const QString& dbid) {
@@ -637,6 +692,7 @@ RemoteDBRegistry::RemoteDBRegistry() {
     aliases.insert("uniprot", UNIPROTKB_SWISS_PROT);
     aliases.insert("nucleotide", GENBANK_DNA);
     aliases.insert("protein", GENBANK_PROTEIN);
+    aliases.insert("alphafold", ALPHAFOLD);
 
     const QMap<QString, DBXRefInfo>& entries = AppContext::getDBXRefRegistry()->getEntries();
     foreach (const DBXRefInfo& info, entries.values()) {
@@ -652,14 +708,7 @@ RemoteDBRegistry::RemoteDBRegistry() {
     hints.insert(SWISS_PROT, QObject::tr("Use SWISS-PROT accession number. For example: %1 or %2").arg(makeIDLink("Q9IGQ6")).arg(makeIDLink("A0N8V2")));
     hints.insert(UNIPROTKB_SWISS_PROT, QObject::tr("Use UniProtKB/Swiss-Prot accession number. For example: %1").arg(makeIDLink("P16152")));
     hints.insert(UNIPROTKB_TREMBL, QObject::tr("Use UniProtKB/TrEMBL accession number. For example: %1").arg(makeIDLink("D0VTW9")));
-
-    externalLinks.insert(ENSEMBL, "https://www.ensembl.org");
-    externalLinks.insert(GENBANK_DNA, "https://www.ncbi.nlm.nih.gov/nucleotide");
-    externalLinks.insert(GENBANK_PROTEIN, "https://www.ncbi.nlm.nih.gov/protein");
-    externalLinks.insert(PDB, "https://www.rcsb.org");
-    externalLinks.insert(SWISS_PROT, "https://www.uniprot.org");
-    externalLinks.insert(UNIPROTKB_SWISS_PROT, "https://www.uniprot.org");
-    externalLinks.insert(UNIPROTKB_TREMBL, "https://www.uniprot.org");
+    hints.insert(ALPHAFOLD, QObject::tr("Use UniProtKB accession number. For example: %1 or %2").arg(makeIDLink("A2BC19")).arg(makeIDLink("A0A023GPI8")));
 }
 
 RemoteDBRegistry& RemoteDBRegistry::getRemoteDBRegistry() {
@@ -689,12 +738,6 @@ QString RemoteDBRegistry::getHint(const QString& dbName) const {
     } else {
         return QObject::tr("Use %1 unique identifier.").arg(dbName);
     }
-}
-
-QString RemoteDBRegistry::getExternalLinkByName(const QString& dbName) const {
-    SAFE_POINT(externalLinks.contains(dbName), QString("No database found: %1").arg(dbName), {});
-
-    return externalLinks.value(dbName);
 }
 
 void RemoteDBRegistry::convertAlias(QString& dbName) const {

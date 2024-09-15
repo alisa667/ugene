@@ -48,6 +48,7 @@
 #include "tests/common_scenarios/create_shortcut/GTTestsCreateShortcut.h"
 #include "tests/common_scenarios/document_from_text/GTTestsDocumentFromText.h"
 #include "tests/common_scenarios/dp_view/GTTestsDpView.h"
+#include "tests/common_scenarios/entropy/GTTestsEntropyCalculation.h"
 #include "tests/common_scenarios/fasttree/GTTestsFastTree.h"
 #include "tests/common_scenarios/genecut/GTTestsGeneCut.h"
 #include "tests/common_scenarios/iqtree/GTTestsIQTree.h"
@@ -2148,6 +2149,18 @@ void GUITestBasePlugin::registerTests(UGUITestBase* guiTestBase) {
     REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0013);
     REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0014);
     REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0015);
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0016_1)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0016_2)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0016_3)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0016_4)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0016_5)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0016_6)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0016_7)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0016_8)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0017)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0018)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0019)
+    REGISTER_TEST(GUITest_common_scenarios_project_remote_request::test_0020)
 
     //////////////////////////////////////////////////////////////////////////
     // Common scenarios/toggle view/
@@ -3099,6 +3112,13 @@ void GUITestBasePlugin::registerTests(UGUITestBase* guiTestBase) {
     REGISTER_TEST(GUITest_common_scenarios_genecut::test_0010);
     REGISTER_TEST(GUITest_common_scenarios_genecut::test_0011);
     REGISTER_TEST(GUITest_common_scenarios_genecut::test_0012);
+
+    /////////////////////////////////////////////////////////////////////////
+    // common_scenarios/entropy
+    /////////////////////////////////////////////////////////////////////////
+    REGISTER_TEST(GUITest_common_scenarios_entropy::test_0001);
+    REGISTER_TEST(GUITest_common_scenarios_entropy::test_0002);
+    REGISTER_TEST(GUITest_common_scenarios_entropy::test_0003);
 
     /////////////////////////////////////////////////////////////////////////
     // common_scenarios/fasttree
